@@ -27,25 +27,37 @@ RETRIEVER_K = 4
 @st.cache_resource(show_spinner="Loading FAISS index…")
 def load_vectorstore():
     try:
-        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-        
-        if not os.path.exists(INDEX_FOLDER):
-            st.error(f"Index folder not found: {INDEX_FOLDER}")
-            st.stop()
+    # Force official Hugging Face model - no variables, no novita routing
+    llm_endpoint = HuggingFaceEndpoint(
+        repo_id="mistralai/Mistral-7B-Instruct-v0.3",  # correct official HF model
+        huggingfacehub_api_token=hf_token,
+        temperature=TEMPERATURE,
+        max_new_tokens=MAX_NEW_TOKENS,
+    )
+    llm = ChatHuggingFace(llm=llm_endpoint)
 
-        files = os.listdir(INDEX_FOLDER)
-        st.info(f"Index folder found. Files: {files}")
+    prompt = ChatPromptTemplate.from_template(
+        """You are a Singapore Charity Expert. Answer the question using only the provided context. 
+Be accurate, concise and professional.
 
-        vectorstore = FAISS.load_local(
-            INDEX_FOLDER,
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
-        st.success("FAISS index loaded successfully")
-        return vectorstore
-    except Exception as e:
-        st.error(f"Failed to load FAISS index\n\n{str(e)}")
-        st.stop()
+Context:
+{context}
+
+Question: {input}
+
+Answer:"""
+    )
+
+    combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+    retrieval_chain = create_retrieval_chain(
+        load_vectorstore().as_retriever(search_kwargs={"k": RETRIEVER_K}),
+        combine_docs_chain
+    )
+
+    return retrieval_chain
+except Exception as e:
+    st.error(f"Failed to initialize LLM or chain\n\n{str(e)}")
+    st.stop()
 
 # ────────────────────────────────────────────────
 # LLM & CHAIN SETUP (cached)
@@ -137,3 +149,5 @@ if prompt := st.chat_input("Ask about charity grants, governance, eligibility...
                 st.error(f"Error during generation:\n\n{str(e)}")
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
+
+Force correct Mistral repo_id to fix 404 novita error
