@@ -5,7 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, Ch
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 
-# Legacy chains moved to langchain-classic in LangChain v1.0+
+# Use langchain_classic for legacy chains (required in LangChain 1.0+)
 from langchain_classic.chains import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
