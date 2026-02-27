@@ -24,36 +24,41 @@ RETRIEVER_K = 4
 # VECTOR STORE LOADING (cached)
 # ────────────────────────────────────────────────
 
-@st.cache_resource(show_spinner="Loading FAISS index…")
-def load_vectorstore():
+@st.cache_resource(show_spinner="Initializing LLM and chain…")
+def create_rag_chain():
+    hf_token = os.getenv("HF_TOKEN")
+    
+    if not hf_token:
+        st.error("HF_TOKEN secret is missing. Please add it in Streamlit Cloud → Secrets.")
+        st.stop()
+
     try:
-        # Force official Hugging Face model - no variables, no novita routing
         llm_endpoint = HuggingFaceEndpoint(
-            repo_id="mistralai/Mistral-7B-Instruct-v0.3",  # correct official HF model
-            huggingfacehub_api_token=hf_token,
-            temperature=TEMPERATURE,
-            max_new_tokens=MAX_NEW_TOKENS,
+            repo_id="mistralai/Mistral-7B-Instruct-v0.3",
+            huggingfacehub_api_token=hf_token,  # ← must use hf_token here
+            temperature=0.2,
+            max_new_tokens=400,
         )
         llm = ChatHuggingFace(llm=llm_endpoint)
-    
+
         prompt = ChatPromptTemplate.from_template(
             """You are a Singapore Charity Expert. Answer the question using only the provided context. 
-    Be accurate, concise and professional.
-    
-    Context:
-    {context}
-    
-    Question: {input}
-    
-    Answer:"""
+Be accurate, concise and professional.
+
+Context:
+{context}
+
+Question: {input}
+
+Answer:"""
         )
-    
+
         combine_docs_chain = create_stuff_documents_chain(llm, prompt)
         retrieval_chain = create_retrieval_chain(
-            load_vectorstore().as_retriever(search_kwargs={"k": RETRIEVER_K}),
+            load_vectorstore().as_retriever(search_kwargs={"k": 4}),
             combine_docs_chain
         )
-    
+
         return retrieval_chain
     except Exception as e:
         st.error(f"Failed to initialize LLM or chain\n\n{str(e)}")
