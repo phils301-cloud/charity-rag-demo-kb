@@ -149,5 +149,3 @@ if prompt := st.chat_input("Ask about charity grants, governance, eligibility...
                 st.error(f"Error during generation:\n\n{str(e)}")
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
-
-Force correct Mistral repo_id to fix 404 novita error
