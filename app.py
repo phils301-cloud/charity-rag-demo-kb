@@ -56,7 +56,7 @@ def create_rag_chain():
         combine_docs_chain = create_stuff_documents_chain(llm, prompt)
         
         # Use the correct function name here (match your def above)
-        vectorstore = load_vectorstore()  # ← change if your function name is different (e.g. load_rag_system)
+        vectorstore = load_vectorstore(charity_faiss_index)  # ← change if your function name is different (e.g. load_rag_system)
         retrieval_chain = create_retrieval_chain(
             vectorstore.as_retriever(search_kwargs={"k": 4}),
             combine_docs_chain
