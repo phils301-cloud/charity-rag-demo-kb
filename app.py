@@ -35,30 +35,33 @@ def create_rag_chain():
     try:
         llm_endpoint = HuggingFaceEndpoint(
             repo_id="mistralai/Mistral-7B-Instruct-v0.3",
-            huggingfacehub_api_token=hf_token,  # ← must use hf_token here
+            huggingfacehub_api_token=hf_token,
             temperature=0.2,
             max_new_tokens=400,
         )
         llm = ChatHuggingFace(llm=llm_endpoint)
-
+    
         prompt = ChatPromptTemplate.from_template(
             """You are a Singapore Charity Expert. Answer the question using only the provided context. 
-Be accurate, concise and professional.
-
-Context:
-{context}
-
-Question: {input}
-
-Answer:"""
+    Be accurate, concise and professional.
+    
+    Context:
+    {context}
+    
+    Question: {input}
+    
+    Answer:"""
         )
-
+    
         combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+        
+        # Use the correct function name here (match your def above)
+        vectorstore = load_vectorstore()  # ← change if your function name is different (e.g. load_rag_system)
         retrieval_chain = create_retrieval_chain(
-            load_vectorstore().as_retriever(search_kwargs={"k": 4}),
+            vectorstore.as_retriever(search_kwargs={"k": 4}),
             combine_docs_chain
         )
-
+    
         return retrieval_chain
     except Exception as e:
         st.error(f"Failed to initialize LLM or chain\n\n{str(e)}")
