@@ -27,37 +27,37 @@ RETRIEVER_K = 4
 @st.cache_resource(show_spinner="Loading FAISS index…")
 def load_vectorstore():
     try:
-    # Force official Hugging Face model - no variables, no novita routing
-    llm_endpoint = HuggingFaceEndpoint(
-        repo_id="mistralai/Mistral-7B-Instruct-v0.3",  # correct official HF model
-        huggingfacehub_api_token=hf_token,
-        temperature=TEMPERATURE,
-        max_new_tokens=MAX_NEW_TOKENS,
-    )
-    llm = ChatHuggingFace(llm=llm_endpoint)
-
-    prompt = ChatPromptTemplate.from_template(
-        """You are a Singapore Charity Expert. Answer the question using only the provided context. 
-Be accurate, concise and professional.
-
-Context:
-{context}
-
-Question: {input}
-
-Answer:"""
-    )
-
-    combine_docs_chain = create_stuff_documents_chain(llm, prompt)
-    retrieval_chain = create_retrieval_chain(
-        load_vectorstore().as_retriever(search_kwargs={"k": RETRIEVER_K}),
-        combine_docs_chain
-    )
-
-    return retrieval_chain
-except Exception as e:
-    st.error(f"Failed to initialize LLM or chain\n\n{str(e)}")
-    st.stop()
+        # Force official Hugging Face model - no variables, no novita routing
+        llm_endpoint = HuggingFaceEndpoint(
+            repo_id="mistralai/Mistral-7B-Instruct-v0.3",  # correct official HF model
+            huggingfacehub_api_token=hf_token,
+            temperature=TEMPERATURE,
+            max_new_tokens=MAX_NEW_TOKENS,
+        )
+        llm = ChatHuggingFace(llm=llm_endpoint)
+    
+        prompt = ChatPromptTemplate.from_template(
+            """You are a Singapore Charity Expert. Answer the question using only the provided context. 
+    Be accurate, concise and professional.
+    
+    Context:
+    {context}
+    
+    Question: {input}
+    
+    Answer:"""
+        )
+    
+        combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+        retrieval_chain = create_retrieval_chain(
+            load_vectorstore().as_retriever(search_kwargs={"k": RETRIEVER_K}),
+            combine_docs_chain
+        )
+    
+        return retrieval_chain
+    except Exception as e:
+        st.error(f"Failed to initialize LLM or chain\n\n{str(e)}")
+        st.stop()
 
 # ────────────────────────────────────────────────
 # LLM & CHAIN SETUP (cached)
